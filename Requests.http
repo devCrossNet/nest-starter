@@ -1,0 +1,79 @@
+# create user
+POST http://localhost:8080/users
+Content-Type: application/json
+
+{"email": "test@example.com", "password": "1337!leet"}
+
+> {% client.global.set("user_id1", response.body.id); %}
+
+###
+
+# create another user
+POST http://localhost:8080/users
+Content-Type: application/json
+
+{"email": "test2@example.com", "password": "1337!leet"}
+
+> {% client.global.set("user_id2", response.body.id); %}
+
+###
+
+# get tokens
+POST http://localhost:8080/auth/token
+Content-Type: application/json
+
+{"email": "test@example.com", "password": "1337!leet"}
+
+> {%
+client.global.set("access_token", response.body.access_token);
+client.global.set("refresh_token", response.body.refresh_token);
+%}
+
+###
+
+# get user info
+GET http://localhost:8080/auth/user
+Authorization: Bearer {{access_token}}
+
+###
+
+# get all users -> 403
+GET http://localhost:8080/users
+Authorization: Bearer {{access_token}}
+
+###
+
+# get own user
+GET http://localhost:8080/users/{{user_id1}}
+Authorization: Bearer {{access_token}}
+
+###
+
+# get other user -> 403
+GET http://localhost:8080/users/{{user_id2}}
+Authorization: Bearer {{access_token}}
+
+###
+
+# delete other user -> 403
+DELETE http://localhost:8080/users/{{user_id2}}
+Authorization: Bearer {{access_token}}
+
+###
+
+# delete user by id
+DELETE http://localhost:8080/users/{{user_id1}}
+Authorization: Bearer {{access_token}}
+
+###
+
+# get new tokens
+POST http://localhost:8080/auth/refresh
+Content-Type: application/json
+
+{"refresh_token": "{{ refresh_token }}"}
+
+> {%
+client.global.set("access_token", response.body.access_token);
+client.global.set("refresh_token", response.body.refresh_token);
+%}
